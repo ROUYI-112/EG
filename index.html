@@ -140,10 +140,15 @@
 
   /* ===== 粉紅巴士 ===== */
   .bus-wrap {
-    position: fixed; top: 64%; left: 50%; transform: translateX(-50%);
-    z-index: -1; animation: busFloat 8s ease-in-out infinite;
+    position: fixed; top: 64%; left: 0;
+    z-index: -1;
+    animation: busCross 48s ease-in-out infinite alternate;
   }
-  @keyframes busFloat { 0%,100% { transform: translateX(-50%); } 50% { transform: translateX(calc(-50% + 8px)); } }
+  /* 從最左邊緩慢開到最右邊，再緩慢開回來 */
+  @keyframes busCross {
+    from { transform: translateX(0); }
+    to   { transform: translateX(calc(100vw - 100%)); }
+  }
   .bus { width: 150px; height: auto; display: block; opacity: 0.96; }
 
   @media (prefers-reduced-motion: reduce) {
@@ -245,6 +250,10 @@
   @media (max-width: 380px) {
     .q-text { font-size: 19px; } .a-text { font-size: 20px; }
     .face { padding: 28px 20px; } .bus { width: 120px; }
+    @keyframes busCross {
+      from { transform: translateX(0); }
+      to   { transform: translateX(calc(100vw - 120px)); }
+    }
   }
 </style>
 </head>
