@@ -6,182 +6,284 @@
 <title>英文閃卡練習</title>
 <style>
   :root {
-    --ink: #2a2a2e;
-    --paper: #fdfbf6;
-    --card: #ffffff;
-    --accent: #d9824f;
-    --accent-soft: #f4e3d6;
-    --teal: #4a7c7c;
-    --line: #e8e2d6;
-    --muted: #9a9387;
-    --shadow: rgba(60, 50, 40, 0.12);
+    --ink: #36343a;
+    --accent: #e87fa3;
+    --accent-deep: #d65f88;
+    --teal: #3f8a7e;
+    --line: rgba(255,255,255,0.6);
+    --muted: #8a8a92;
+    --shadow: rgba(40, 50, 70, 0.18);
+    --sky-top: #f4a9c0;
+    --sky-bot: #f6bfcf;
+    --sea-top: #2c4a6e;
+    --sea-bot: #20395a;
+    --grass: #5fc09a;
+    --grass-deep: #46a37f;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
   body {
     font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
-    background: var(--paper);
     color: var(--ink);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     min-height: 100dvh;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    position: relative;
+    overflow-x: hidden;
   }
+
+  /* ===== 背景風景 ===== */
+  .scenery { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
+  .sky {
+    position: absolute; top: 0; left: 0; right: 0; height: 38%;
+    background: linear-gradient(to bottom, #f49bb6 0%, #f5b3c8 60%, #f7c6d4 100%);
+  }
+  .sun {
+    position: absolute; top: 18%; right: 12%;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, #fdf6e3, #f7e7b8);
+    box-shadow: 0 0 30px rgba(253,246,227,0.7);
+  }
+  .hills {
+    position: absolute; top: calc(38% - 26px); left: 0; right: 0; height: 40px;
+    background: linear-gradient(to bottom, #3f8a6e, #357a60);
+    clip-path: polygon(0 60%, 10% 45%, 22% 58%, 35% 40%, 50% 55%, 65% 42%, 80% 56%, 92% 46%, 100% 58%, 100% 100%, 0 100%);
+    opacity: 0.85;
+  }
+  .sea {
+    position: absolute; top: 38%; left: 0; right: 0; height: 36%;
+    background: linear-gradient(to bottom, #2d4c72 0%, #24416a 50%, #1f3a5c 100%);
+  }
+  .sea::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,0.35), transparent),
+      radial-gradient(1px 1px at 80% 25%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 35% 70%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 75% 65%, rgba(255,255,255,0.35), transparent);
+    background-size: 180px 90px;
+    opacity: 0.6;
+  }
+  .shore {
+    position: absolute; top: calc(74% - 6px); left: 0; right: 0; height: 12px;
+    background: #ede4d8;
+    box-shadow: 0 -1px 0 rgba(255,255,255,0.5);
+  }
+  .grass {
+    position: absolute; top: 74%; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, #5fc09a 0%, #4ba886 70%, #3f9779 100%);
+  }
+  .grass::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1.5px 1.5px at 15% 40%, rgba(40,90,70,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 45% 60%, rgba(40,90,70,0.35), transparent),
+      radial-gradient(1.5px 1.5px at 70% 35%, rgba(40,90,70,0.4), transparent),
+      radial-gradient(1.5px 1.5px at 85% 70%, rgba(40,90,70,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 30% 80%, rgba(40,90,70,0.35), transparent);
+    background-size: 120px 80px;
+  }
+  /* 草地上的格紋野餐墊 */
+  .picnic {
+    position: absolute; bottom: -10px; right: 8%;
+    width: 130px; height: 70px;
+    background:
+      repeating-linear-gradient(0deg, rgba(216,95,136,0.55) 0 8px, transparent 8px 16px),
+      repeating-linear-gradient(90deg, rgba(216,95,136,0.55) 0 8px, transparent 8px 16px),
+      #f0c9d5;
+    transform: perspective(120px) rotateX(55deg) rotate(-8deg);
+    border-radius: 4px;
+    opacity: 0.8;
+  }
+
+  /* 電線桿 */
+  .pole {
+    position: absolute; width: 2px; background: #5a5560; top: 56%; height: 18%;
+    transform-origin: bottom;
+  }
+  .pole.p1 { left: 12%; }
+  .pole.p2 { left: 16%; transform: rotate(-4deg); }
+  .pole.p3 { left: 8%; height: 14%; top: 60%; }
+
+  /* ===== 飄動的雲 ===== */
+  .cloud {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.95;
+    filter: blur(0.3px);
+  }
+  .cloud::before, .cloud::after {
+    content: ""; position: absolute; background: #fff; border-radius: 50%;
+  }
+  .cloud-group { position: absolute; top: 30%; }
+  .cloud-a {
+    width: 80px; height: 28px;
+    box-shadow: 30px -8px 0 6px #fff, 62px 2px 0 -2px #fff, -18px 4px 0 -2px #fff;
+    animation: driftA 26s ease-in-out infinite alternate;
+  }
+  .cloud-b {
+    width: 60px; height: 22px; top: 33%; left: 40%;
+    box-shadow: 24px -6px 0 4px #fff, 48px 2px 0 -3px #fff;
+    animation: driftB 32s ease-in-out infinite alternate;
+  }
+  .cloud-c {
+    width: 70px; height: 24px; top: 28%; left: 8%;
+    box-shadow: 26px -7px 0 5px #fff, 54px 0 0 -2px #fff;
+    animation: driftC 22s ease-in-out infinite alternate;
+  }
+  @keyframes driftA { from { transform: translateX(-40px); } to { transform: translateX(60px); } }
+  @keyframes driftB { from { transform: translateX(50px); } to { transform: translateX(-50px); } }
+  @keyframes driftC { from { transform: translateX(-30px); } to { transform: translateX(70px); } }
+
+  /* ===== 粉紅巴士 ===== */
+  .bus-wrap {
+    position: fixed; top: 64%; left: 50%; transform: translateX(-50%);
+    z-index: -1; animation: busFloat 8s ease-in-out infinite;
+  }
+  @keyframes busFloat { 0%,100% { transform: translateX(-50%); } 50% { transform: translateX(calc(-50% + 8px)); } }
+  .bus { width: 150px; height: auto; display: block; opacity: 0.96; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cloud-a, .cloud-b, .cloud-c, .bus-wrap { animation: none; }
+  }
+
+  /* ===== 介面 ===== */
   header {
-    padding: 18px 20px 12px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--line);
+    padding: 16px 20px 12px;
+    display: flex; align-items: baseline; justify-content: space-between;
   }
-  .title { font-size: 19px; font-weight: 700; letter-spacing: 0.5px; }
-  .title .dot { color: var(--accent); }
+  .title {
+    font-size: 19px; font-weight: 700; letter-spacing: 0.5px;
+    color: #fff; text-shadow: 0 1px 4px rgba(180,90,120,0.5);
+  }
+  .title .dot { color: #fff7c0; }
   .counter {
-    font-variant-numeric: tabular-nums;
-    font-size: 14px;
-    color: var(--muted);
-    font-weight: 600;
+    font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 700;
+    color: #fff; text-shadow: 0 1px 3px rgba(180,90,120,0.5);
   }
   .progress-track {
-    height: 4px;
-    background: var(--line);
-    width: 100%;
+    height: 4px; margin: 0 20px; border-radius: 4px;
+    background: rgba(255,255,255,0.45);
   }
   .progress-bar {
-    height: 100%;
-    background: var(--accent);
-    width: 0%;
-    transition: width 0.3s ease;
+    height: 100%; border-radius: 4px;
+    background: #fff; width: 0%; transition: width 0.3s ease;
   }
   main {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 20px;
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 20px;
   }
-  .scene { width: 100%; max-width: 460px; perspective: 1600px; }
+  .scene-3d { width: 100%; max-width: 440px; perspective: 1600px; }
   .card {
-    position: relative;
-    width: 100%;
-    min-height: 340px;
-    cursor: pointer;
+    position: relative; width: 100%; min-height: 320px; cursor: pointer;
     transform-style: preserve-3d;
     transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
   }
   .card.flipped { transform: rotateY(180deg); }
   .face {
-    position: absolute;
-    inset: 0;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    background: var(--card);
-    border-radius: 20px;
-    box-shadow: 0 12px 32px var(--shadow);
-    padding: 36px 28px;
-    display: flex;
-    flex-direction: column;
+    position: absolute; inset: 0;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border-radius: 22px;
+    box-shadow: 0 16px 40px var(--shadow);
+    border: 1px solid rgba(255,255,255,0.8);
+    padding: 32px 26px; display: flex; flex-direction: column;
   }
-  .face.back { transform: rotateY(180deg); background: #fffdf8; }
+  .face.back { transform: rotateY(180deg); background: rgba(255,253,248,0.95); }
   .tag {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    align-self: flex-start;
-    padding: 5px 12px;
-    border-radius: 20px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; align-self: flex-start;
+    padding: 5px 12px; border-radius: 20px;
   }
-  .face.front .tag { background: var(--accent-soft); color: var(--accent); }
-  .face.back .tag { background: #dceaea; color: var(--teal); }
+  .face.front .tag { background: #fbe1ea; color: var(--accent-deep); }
+  .face.back .tag { background: #d9ece7; color: var(--teal); }
   .content {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 16px 4px;
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 14px 4px;
   }
-  .q-text { font-size: 22px; line-height: 1.55; font-weight: 600; }
-  .a-text { font-size: 24px; line-height: 1.55; font-weight: 600; color: var(--teal); }
-  .hint {
-    text-align: center;
-    font-size: 13px;
-    color: var(--muted);
-    letter-spacing: 0.5px;
-  }
+  .q-text { font-size: 21px; line-height: 1.55; font-weight: 600; }
+  .a-text { font-size: 23px; line-height: 1.55; font-weight: 600; color: var(--teal); }
+  .hint { text-align: center; font-size: 13px; color: var(--muted); letter-spacing: 0.5px; }
   .controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    padding: 14px 20px 22px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px; padding: 12px 20px 16px;
   }
-  button {
-    font-family: inherit;
-    border: none;
-    cursor: pointer;
-    font-weight: 700;
-    transition: transform 0.1s ease, background 0.2s ease;
-  }
+  button { font-family: inherit; border: none; cursor: pointer; font-weight: 700;
+    transition: transform 0.1s ease, background 0.2s ease; }
   button:active { transform: scale(0.94); }
   .nav-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: var(--card);
-    box-shadow: 0 4px 14px var(--shadow);
-    font-size: 26px;
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 58px; height: 58px; border-radius: 50%;
+    background: rgba(255,255,255,0.92); box-shadow: 0 4px 14px var(--shadow);
+    font-size: 26px; color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
   }
-  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .nav-btn:disabled { opacity: 0.4; cursor: default; }
   .flip-btn {
-    flex: 1;
-    max-width: 200px;
-    height: 60px;
-    border-radius: 30px;
-    background: var(--accent);
-    color: #fff;
-    font-size: 17px;
-    letter-spacing: 1px;
+    flex: 1; max-width: 190px; height: 58px; border-radius: 30px;
+    background: var(--accent); color: #fff; font-size: 17px; letter-spacing: 1px;
+    box-shadow: 0 6px 18px rgba(216,95,136,0.4);
   }
   .toolbar {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 0 20px 22px;
-    flex-wrap: wrap;
+    display: flex; justify-content: center; gap: 9px;
+    padding: 0 20px 24px; flex-wrap: wrap;
   }
   .tool {
-    background: transparent;
-    border: 1.5px solid var(--line);
-    color: var(--muted);
-    padding: 9px 18px;
-    border-radius: 22px;
-    font-size: 13.5px;
-    font-weight: 600;
+    background: rgba(255,255,255,0.85); border: 1.5px solid rgba(255,255,255,0.9);
+    color: var(--teal); padding: 9px 16px; border-radius: 22px;
+    font-size: 13.5px; font-weight: 600;
+    box-shadow: 0 2px 8px rgba(40,50,70,0.1);
   }
-  .tool.active { border-color: var(--teal); color: var(--teal); background: #eef5f5; }
+  .tool.active { border-color: var(--teal); background: #e3f0ec; }
   .done-banner {
-    display: none;
-    text-align: center;
-    font-size: 13px;
-    color: var(--accent);
-    font-weight: 700;
-    padding-bottom: 8px;
+    display: none; text-align: center; font-size: 13px; color: #fff;
+    font-weight: 700; padding-bottom: 8px; text-shadow: 0 1px 3px rgba(180,90,120,0.5);
   }
   @media (max-width: 380px) {
-    .q-text { font-size: 20px; }
-    .a-text { font-size: 21px; }
-    .face { padding: 30px 22px; }
+    .q-text { font-size: 19px; } .a-text { font-size: 20px; }
+    .face { padding: 28px 20px; } .bus { width: 120px; }
   }
 </style>
 </head>
 <body>
+  <!-- 背景風景 -->
+  <div class="scenery" aria-hidden="true">
+    <div class="sky"></div>
+    <div class="sun"></div>
+    <div class="cloud cloud-a cloud-group" style="left:14%"></div>
+    <div class="cloud cloud-b"></div>
+    <div class="cloud cloud-c"></div>
+    <div class="hills"></div>
+    <div class="sea"></div>
+    <div class="pole p1"></div>
+    <div class="pole p2"></div>
+    <div class="pole p3"></div>
+    <div class="shore"></div>
+    <div class="grass"></div>
+    <div class="picnic"></div>
+  </div>
+
+  <!-- 粉紅巴士 -->
+  <div class="bus-wrap" aria-hidden="true">
+    <svg class="bus" viewBox="0 0 150 64" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="10" width="138" height="40" rx="9" fill="#ec85a6"/>
+      <rect x="4" y="10" width="138" height="40" rx="9" fill="none" stroke="#d96b8e" stroke-width="1.5"/>
+      <rect x="14" y="18" width="16" height="13" rx="2.5" fill="#f6c2d3"/>
+      <rect x="36" y="18" width="16" height="13" rx="2.5" fill="#f6c2d3"/>
+      <rect x="58" y="18" width="16" height="13" rx="2.5" fill="#f6c2d3"/>
+      <rect x="80" y="18" width="16" height="13" rx="2.5" fill="#f6c2d3"/>
+      <rect x="102" y="18" width="16" height="13" rx="2.5" fill="#f6c2d3"/>
+      <rect x="124" y="18" width="12" height="13" rx="2.5" fill="#f6c2d3"/>
+      <circle cx="34" cy="50" r="9" fill="#3a3540"/>
+      <circle cx="34" cy="50" r="4" fill="#cfcad4"/>
+      <circle cx="112" cy="50" r="9" fill="#3a3540"/>
+      <circle cx="112" cy="50" r="4" fill="#cfcad4"/>
+    </svg>
+  </div>
+
   <header>
     <div class="title">英文閃卡<span class="dot">.</span></div>
     <div class="counter"><span id="cur">1</span> / <span id="total">100</span></div>
@@ -189,7 +291,7 @@
   <div class="progress-track"><div class="progress-bar" id="bar"></div></div>
 
   <main>
-    <div class="scene">
+    <div class="scene-3d">
       <div class="card" id="card" onclick="flip()">
         <div class="face front">
           <span class="tag">題目</span>
@@ -241,10 +343,6 @@ totalEl.textContent = DATA.length;
 function render() {
   const card = DATA[order[pos]];
   cardEl.classList.remove('flipped');
-  setTimeout(() => {
-    qEl.textContent = card.q;
-    aEl.textContent = card.a;
-  }, cardEl.classList.contains('flipped') ? 250 : 0);
   qEl.textContent = card.q;
   aEl.textContent = card.a;
   curEl.textContent = pos + 1;
@@ -253,42 +351,22 @@ function render() {
   nextBtn.disabled = pos === DATA.length - 1;
   doneBanner.style.display = pos === DATA.length - 1 ? 'block' : 'none';
 }
-
 function flip() { cardEl.classList.toggle('flipped'); }
-
-function next() {
-  if (pos < DATA.length - 1) { pos++; render(); }
-}
-function prev() {
-  if (pos > 0) { pos--; render(); }
-}
-
+function next() { if (pos < DATA.length - 1) { pos++; render(); } }
+function prev() { if (pos > 0) { pos--; render(); } }
 function shuffleCards() {
   for (let i = order.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [order[i], order[j]] = [order[j], order[i]];
   }
-  pos = 0;
-  render();
+  pos = 0; render();
 }
-function resetOrder() {
-  order = DATA.map((_, i) => i);
-  pos = 0;
-  render();
-}
-
+function resetOrder() { order = DATA.map((_, i) => i); pos = 0; render(); }
 function toggleAuto() {
   auto = !auto;
   const btn = document.getElementById('autoBtn');
-  if (auto) {
-    btn.classList.add('active');
-    btn.textContent = '⏸ 自動翻面';
-    runAuto();
-  } else {
-    btn.classList.remove('active');
-    btn.textContent = '▶ 自動翻面';
-    clearTimeout(autoTimer);
-  }
+  if (auto) { btn.classList.add('active'); btn.textContent = '⏸ 自動翻面'; runAuto(); }
+  else { btn.classList.remove('active'); btn.textContent = '▶ 自動翻面'; clearTimeout(autoTimer); }
 }
 function runAuto() {
   if (!auto) return;
@@ -299,13 +377,11 @@ function runAuto() {
     } else { flip(); runAuto(); }
   }, 2800);
 }
-
 document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') next();
   else if (e.key === 'ArrowLeft') prev();
   else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
 });
-
 let touchX = null;
 cardEl.addEventListener('touchstart', e => { touchX = e.changedTouches[0].clientX; }, {passive:true});
 cardEl.addEventListener('touchend', e => {
@@ -314,7 +390,6 @@ cardEl.addEventListener('touchend', e => {
   if (Math.abs(dx) > 60) { dx < 0 ? next() : prev(); }
   touchX = null;
 }, {passive:true});
-
 render();
 </script>
 </body>
