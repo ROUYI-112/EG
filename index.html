@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>英文閃卡練習</title>
+<style>
+  :root {
+    --ink: #2a2a2e;
+    --paper: #fdfbf6;
+    --card: #ffffff;
+    --accent: #d9824f;
+    --accent-soft: #f4e3d6;
+    --teal: #4a7c7c;
+    --line: #e8e2d6;
+    --muted: #9a9387;
+    --shadow: rgba(60, 50, 40, 0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  header {
+    padding: 18px 20px 12px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+  }
+  .title { font-size: 19px; font-weight: 700; letter-spacing: 0.5px; }
+  .title .dot { color: var(--accent); }
+  .counter {
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--line);
+    width: 100%;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px;
+  }
+  .scene { width: 100%; max-width: 460px; perspective: 1600px; }
+  .card {
+    position: relative;
+    width: 100%;
+    min-height: 340px;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: 0 12px 32px var(--shadow);
+    padding: 36px 28px;
+    display: flex;
+    flex-direction: column;
+  }
+  .face.back { transform: rotateY(180deg); background: #fffdf8; }
+  .tag {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    align-self: flex-start;
+    padding: 5px 12px;
+    border-radius: 20px;
+  }
+  .face.front .tag { background: var(--accent-soft); color: var(--accent); }
+  .face.back .tag { background: #dceaea; color: var(--teal); }
+  .content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px 4px;
+  }
+  .q-text { font-size: 22px; line-height: 1.55; font-weight: 600; }
+  .a-text { font-size: 24px; line-height: 1.55; font-weight: 600; color: var(--teal); }
+  .hint {
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 14px 20px 22px;
+  }
+  button {
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    transition: transform 0.1s ease, background 0.2s ease;
+  }
+  button:active { transform: scale(0.94); }
+  .nav-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: 0 4px 14px var(--shadow);
+    font-size: 26px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .flip-btn {
+    flex: 1;
+    max-width: 200px;
+    height: 60px;
+    border-radius: 30px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 17px;
+    letter-spacing: 1px;
+  }
+  .toolbar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 20px 22px;
+    flex-wrap: wrap;
+  }
+  .tool {
+    background: transparent;
+    border: 1.5px solid var(--line);
+    color: var(--muted);
+    padding: 9px 18px;
+    border-radius: 22px;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .tool.active { border-color: var(--teal); color: var(--teal); background: #eef5f5; }
+  .done-banner {
+    display: none;
+    text-align: center;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 700;
+    padding-bottom: 8px;
+  }
+  @media (max-width: 380px) {
+    .q-text { font-size: 20px; }
+    .a-text { font-size: 21px; }
+    .face { padding: 30px 22px; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="title">英文閃卡<span class="dot">.</span></div>
+    <div class="counter"><span id="cur">1</span> / <span id="total">100</span></div>
+  </header>
+  <div class="progress-track"><div class="progress-bar" id="bar"></div></div>
+
+  <main>
+    <div class="scene">
+      <div class="card" id="card" onclick="flip()">
+        <div class="face front">
+          <span class="tag">題目</span>
+          <div class="content"><div class="q-text" id="q"></div></div>
+          <div class="hint">點一下看答案</div>
+        </div>
+        <div class="face back">
+          <span class="tag">答案</span>
+          <div class="content"><div class="a-text" id="a"></div></div>
+          <div class="hint">點一下回到題目</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="done-banner" id="doneBanner">這一輪都看完囉！再洗牌練一次吧 👏</div>
+
+  <div class="controls">
+    <button class="nav-btn" id="prev" onclick="prev()">‹</button>
+    <button class="flip-btn" onclick="flip()">翻卡</button>
+    <button class="nav-btn" id="next" onclick="next()">›</button>
+  </div>
+
+  <div class="toolbar">
+    <button class="tool" onclick="shuffleCards()">🔀 洗牌</button>
+    <button class="tool" onclick="resetOrder()">↺ 原順序</button>
+    <button class="tool" id="autoBtn" onclick="toggleAuto()">▶ 自動翻面</button>
+  </div>
+
+<script>
+const DATA = [{"q": "術語「eponym」的定義為何？", "a": "最初是某人或某物的名字，後來具有更廣泛、通俗意義的詞彙。"}, {"q": "片語「started out as」在課文中的中文意思為何？", "a": "起初是 / 最初作為。"}, {"q": "動詞片語「take on」在描述詞義演變時的含義為何？", "a": "呈現或具有（某種意義或特質）。"}, {"q": "單字「derive」常搭配哪個介系詞來表達「源自於」？", "a": "from。"}, {"q": "「據說…」在英文中常使用哪種虛主詞句型來表達？", "a": "It is said that...。"}, {"q": "單字「feature」作為動詞（v.）時的中文意思為何？", "a": "以…為特色；由…主演。"}, {"q": "「celebrity gossip」翻譯成中文為何？", "a": "名人八卦 / 流言。"}, {"q": "片語「chase around」的中文意思為何？", "a": "到處追逐 / 追趕。"}, {"q": "單字「paparazzi」是指哪一類型的攝影師？", "a": "到處追逐名人的攝影師（狗仔隊）。"}, {"q": "Cloze: Since the software _____ (release) in 1987, it has become the standard tool.", "a": "was released"}, {"q": "文法：哪一個連接詞組可以用來表達「無論實際上使用的是什麼（軟體）」？", "a": "no matter what。"}, {"q": "「too popular for them to stop its widespread use」的中文解釋為何？", "a": "太受歡迎了以至於他們無法停止其廣泛使用。"}, {"q": "「在…中扮演重要角色」的英文常用片語為何？", "a": "play an important part / role in...。"}, {"q": "單字「constantly」用於描述語言變化時，其意思為何？", "a": "持續地 / 不斷地。"}, {"q": "「think up」的同義片語（由 c 開頭）為何？", "a": "come up with。"}, {"q": "單字「origin」與「original」在詞性上有何不同？", "a": "origin 是名詞（起源）；original 是形容詞（原本的）。"}, {"q": "Cloze: The river _____ (起源) here.", "a": "originates"}, {"q": "單字「general」除了「普遍的」之外，在軍事脈絡下名詞（n.）意思為何？", "a": "將軍。"}, {"q": "「一般而言」的英文（使用 general 轉換）為何？", "a": "Generally speaking。"}, {"q": "「reveal」的名詞（n.）形式為何？", "a": "revelation。"}, {"q": "單字「edit」的名詞（n.）形式（指版本）為何？", "a": "edition。"}, {"q": "單字「standard」作為名詞（n.）時，其「達到標準」的動詞可搭配哪些？", "a": "meet / achieve / reach / live up to。"}, {"q": "「alternative」作為名詞（n.）時的中文意思為何？", "a": "替代方案；選擇。"}, {"q": "Cloze: I have no _____ (選擇) but to leave.", "a": "alternative / option"}, {"q": "單字「astronaut」的中文意思為何？", "a": "太空人。"}, {"q": "「gravity」除了物理上的重力，其衍生義為何？", "a": "嚴重性 (seriousness)。"}, {"q": "「powdered milk」翻譯成中文為何？", "a": "奶粉。"}, {"q": "形容詞「liquid」的反義詞（固體）為何？", "a": "solid。"}, {"q": "片語「on a regular basis」等同於哪個副詞？", "a": "regularly (規律地)。"}, {"q": "Cloze: People _____ (傾向於) eat more comfort food when stressed.", "a": "tend to"}, {"q": "「vision」在描述一個人有遠見時，英文怎麼說？", "a": "a man of vision。"}, {"q": "單字「physical」在醫學檢查（體檢）中如何使用？", "a": "physical checkup。"}, {"q": "單字「maintain」在 Review 3 課文中有哪三個主要意思？", "a": "保持、維護保養、堅稱（主張）。"}, {"q": "片語「No sweat!」在口語中代表什麼意思？", "a": "沒問題 / 輕而易舉。"}, {"q": "片語「bump into」除了撞到，還有什麼意思？", "a": "碰巧遇到 (run into)。"}, {"q": "「furthermore」的同義詞有哪些？", "a": "additionally, in addition, besides, what's more。"}, {"q": "「out of this world」用來形容事物時的意思為何？", "a": "極好的（簡直像從另一個世界來的）。"}, {"q": "片語「work out」在體能脈絡下的中文意思為何？", "a": "體能訓練 / 鍛鍊。"}, {"q": "Cloze: The children started a snowball fight and worked _____ a sweat.", "a": "up"}, {"q": "「have a lie-down」翻譯成中文為何？", "a": "躺下休息。"}, {"q": "單字「broaden」在「拓展視野」的用法為何？", "a": "broaden one's horizons。"}, {"q": "「celebrity」的名詞複數形式為何？", "a": "celebrities。"}, {"q": "單字「launch」在商業活動中常用於表達什麼？", "a": "發行（產品）、發起（活動）。"}, {"q": "「arrange」的名詞（n.）形式為何？", "a": "arrangement。"}, {"q": "「assist」的動詞與名詞（助手）形式分別為何？", "a": "assist (v.); assistant (n.)。"}, {"q": "單字「aspect」的中文意思為何？", "a": "方面。"}, {"q": "單字「contain」與「container」的關係為何？", "a": "contain 是動詞（包含）；container 是名詞（容器）。"}, {"q": "「cooperate」的名詞（n.）形式為何？", "a": "cooperation。"}, {"q": "單字「curious」與「curiosity」的中文意思分別為何？", "a": "好奇的（adj.）；好奇心（n.）。"}, {"q": "「elder」與「elderly」在用法上的區別為何？", "a": "elder 指家庭成員中較年長的；elderly 指年紀大的。"}, {"q": "單字「exchange」作為動詞（v.）時的中文意思為何？", "a": "交換。"}, {"q": "「expectation」的動詞（v.）形式為何？", "a": "expect。"}, {"q": "單字「fierce」常用來形容哪兩類事物？", "a": "天氣狀況（強烈的）或動作情感（激烈的）。"}, {"q": "「neighborhood」的中文意思為何？", "a": "鄰近地區。"}, {"q": "單字「occupation」與「occupy」的關係為何？", "a": "occupation 是名詞（職業）；occupy 是動詞（佔據）。"}, {"q": "單字「relax」的中文意思為何？", "a": "放鬆。"}, {"q": "「shelter」作為名詞（n.）與動詞（v.）的共同核心意義為何？", "a": "庇護 / 遮蔽。"}, {"q": "單字「spiritual」與「spirit」的中文意思分別為何？", "a": "精神上的（adj.）；精神/心靈（n.）。"}, {"q": "單字「stroll」的中文意思為何？", "a": "散步。"}, {"q": "單字「temporary」的反義詞為何？", "a": "permanent (永久的)。"}, {"q": "單字「vehicle」的中文意思為何？", "a": "車輛 / 交通工具。"}, {"q": "「authentic」形容食物時代表什麼？", "a": "道地的 / 真正的。"}, {"q": "「banquet」翻譯成中文為何？", "a": "宴會。"}, {"q": "「leftovers」常用複數形式，其中文意思為何？", "a": "剩菜。"}, {"q": "「utensil」通常指哪一類器具？", "a": "廚房或用餐的器具。"}, {"q": "片語「come about」的中文意思為何？", "a": "發生。"}, {"q": "片語「hand out」與「help out」的意思分別為何？", "a": "發放（前者）；幫忙（後者）。"}, {"q": "「take part in」的同義動詞為何？", "a": "participate。"}, {"q": "「take place」與「happen」在語意上有何重疊？", "a": "皆表示「舉行」或「發生」。"}, {"q": "單字「brand」翻譯成中文為何？", "a": "品牌。"}, {"q": "單字「chase」作為動詞（v.）與名詞（n.）的意思為何？", "a": "追逐。"}, {"q": "「combination」的動詞（v.）形式為何？", "a": "combine。"}, {"q": "單字「digital」與「digitally」的意思分別為何？", "a": "數位的（adj.）；數位地（adv.）。"}, {"q": "「existence」的動詞（v.）形式為何？", "a": "exist。"}, {"q": "單字「usage」在語言學中指什麼？", "a": "（語彙的）用法。"}, {"q": "「widespread」形容影響力或傳播時的意思為何？", "a": "廣泛的。"}, {"q": "Cloze: The host felt dizzy and needed to _____ a lie-down.", "a": "have"}, {"q": "片語「work up an appetite」的意思為何？", "a": "激起食慾。"}, {"q": "單字「modify」的名詞（n.）形式為何？", "a": "modification。"}, {"q": "「image-editing」翻譯成中文為何？", "a": "影像編輯 / 圖片編輯。"}, {"q": "單字「plural」在文法上代表什麼？", "a": "複數。"}, {"q": "「La Dolce Vita」是哪國電影？", "a": "義大利。"}, {"q": "「paparazzi」一詞源於哪部電影的角色名字？", "a": "《甜蜜的生活》(La Dolce Vita)。"}, {"q": "為什麼 Adobe 最初對人們把「Photoshop」當動詞用感到不悅？", "a": "因為不希望品牌名稱被用來描述其他公司的產品。"}, {"q": "「language is constantly changing」反映了語言的什麼特性？", "a": "動態性 / 持續演變。"}, {"q": "「ISS」是哪個機構的縮寫？", "a": "國際太空站 (International Space Station)。"}, {"q": "「Rigorous training」形容訓練時的意思為何？", "a": "嚴格的 / 嚴酷的。"}, {"q": "Cloze: It is difficult to _____ (維持) a healthy lifestyle with a busy schedule.", "a": "maintain"}, {"q": "單字「decrease」的意思為何？", "a": "減少。"}, {"q": "「Blood circulation」翻譯成中文為何？", "a": "血液循環。"}, {"q": "單字「sacrifice」作為動詞（v.）與名詞（n.）意思為何？", "a": "犧牲。"}, {"q": "「Otherwise」在句子中通常引導什麼樣的結果？", "a": "相反的或負面的結果（否則）。"}, {"q": "「gather」在 Review 3 中除了「聚集」，還有什麼衍生意思？", "a": "採集 / 收割。"}, {"q": "單字「tent」翻譯成中文為何？", "a": "帳篷。"}, {"q": "單字「platter」指什麼樣的盤子？", "a": "大淺盤。"}, {"q": "「folks」在口語中指什麼？", "a": "人們 / 親屬。"}, {"q": "Cloze: The cat _____ (佔據) the chair.", "a": "occupies"}, {"q": "「spiritual peace」翻譯成中文為何？", "a": "精神上的平靜。"}, {"q": "「limited edition」翻譯成中文為何？", "a": "限量版。"}, {"q": "Cloze: Who knows what new words we will _____ (想出) next?", "a": "think up"}];
+let order = DATA.map((_, i) => i);
+let pos = 0;
+let auto = false;
+let autoTimer = null;
+
+const cardEl = document.getElementById('card');
+const qEl = document.getElementById('q');
+const aEl = document.getElementById('a');
+const barEl = document.getElementById('bar');
+const curEl = document.getElementById('cur');
+const totalEl = document.getElementById('total');
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+const doneBanner = document.getElementById('doneBanner');
+
+totalEl.textContent = DATA.length;
+
+function render() {
+  const card = DATA[order[pos]];
+  cardEl.classList.remove('flipped');
+  setTimeout(() => {
+    qEl.textContent = card.q;
+    aEl.textContent = card.a;
+  }, cardEl.classList.contains('flipped') ? 250 : 0);
+  qEl.textContent = card.q;
+  aEl.textContent = card.a;
+  curEl.textContent = pos + 1;
+  barEl.style.width = ((pos + 1) / DATA.length * 100) + '%';
+  prevBtn.disabled = pos === 0;
+  nextBtn.disabled = pos === DATA.length - 1;
+  doneBanner.style.display = pos === DATA.length - 1 ? 'block' : 'none';
+}
+
+function flip() { cardEl.classList.toggle('flipped'); }
+
+function next() {
+  if (pos < DATA.length - 1) { pos++; render(); }
+}
+function prev() {
+  if (pos > 0) { pos--; render(); }
+}
+
+function shuffleCards() {
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  pos = 0;
+  render();
+}
+function resetOrder() {
+  order = DATA.map((_, i) => i);
+  pos = 0;
+  render();
+}
+
+function toggleAuto() {
+  auto = !auto;
+  const btn = document.getElementById('autoBtn');
+  if (auto) {
+    btn.classList.add('active');
+    btn.textContent = '⏸ 自動翻面';
+    runAuto();
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = '▶ 自動翻面';
+    clearTimeout(autoTimer);
+  }
+}
+function runAuto() {
+  if (!auto) return;
+  autoTimer = setTimeout(() => {
+    if (!cardEl.classList.contains('flipped')) {
+      flip();
+      autoTimer = setTimeout(() => { if (auto) { next(); runAuto(); } }, 2500);
+    } else { flip(); runAuto(); }
+  }, 2800);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') next();
+  else if (e.key === 'ArrowLeft') prev();
+  else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
+});
+
+let touchX = null;
+cardEl.addEventListener('touchstart', e => { touchX = e.changedTouches[0].clientX; }, {passive:true});
+cardEl.addEventListener('touchend', e => {
+  if (touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 60) { dx < 0 ? next() : prev(); }
+  touchX = null;
+}, {passive:true});
+
+render();
+</script>
+</body>
+</html>
