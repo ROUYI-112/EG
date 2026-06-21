@@ -232,6 +232,21 @@
     background: var(--accent); color: #fff; font-size: 17px; letter-spacing: 1px;
     box-shadow: 0 6px 18px rgba(216,95,136,0.4);
   }
+  .judge {
+    display: flex; justify-content: center; gap: 12px;
+    padding: 0 20px 14px;
+  }
+  .judge-btn {
+    flex: 1; max-width: 150px; height: 50px; border-radius: 26px;
+    font-size: 16px; letter-spacing: 1px; color: #fff;
+    box-shadow: 0 5px 16px rgba(40,50,70,0.18);
+  }
+  .judge-btn.pass { background: #45b07e; }
+  .judge-btn.fail { background: #e08a9a; }
+  .score {
+    margin-right: 10px; padding: 2px 9px; border-radius: 14px;
+    background: rgba(255,255,255,0.35); font-weight: 700;
+  }
   .toolbar {
     display: flex; justify-content: center; gap: 9px;
     padding: 0 20px 24px; flex-wrap: wrap;
@@ -295,7 +310,10 @@
 
   <header>
     <div class="title">英文閃卡<span class="dot">.</span></div>
-    <div class="counter"><span id="cur">1</span> / <span id="total">100</span></div>
+    <div class="counter">
+      <span class="score">✓ <span id="correct">0</span></span>
+      <span id="cur">1</span> / <span id="total">100</span>
+    </div>
   </header>
   <div class="progress-track"><div class="progress-bar" id="bar"></div></div>
 
@@ -324,6 +342,11 @@
     <button class="nav-btn" id="next" onclick="next()">›</button>
   </div>
 
+  <div class="judge">
+    <button class="judge-btn fail" onclick="mark(false)">✗ 失敗</button>
+    <button class="judge-btn pass" onclick="mark(true)">✓ 過關</button>
+  </div>
+
   <div class="toolbar">
     <button class="tool" onclick="shuffleCards()">🔀 洗牌</button>
     <button class="tool" onclick="resetOrder()">↺ 原順序</button>
@@ -336,6 +359,41 @@ let order = DATA.map((_, i) => i);
 let pos = 0;
 let auto = false;
 let autoTimer = null;
+let correctCount = 0;
+const judged = {}; // 記錄每張卡判過沒、判什麼，避免重複加分
+
+// ===== 音效（Web Audio 即時合成，免外部檔案） =====
+let audioCtx = null;
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, start, dur, type, vol) {
+  const ctx = getCtx();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = type || 'sine';
+  o.frequency.value = freq;
+  o.connect(g); g.connect(ctx.destination);
+  const t = ctx.currentTime + start;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+function playPass() {
+  // 輕快上揚的「叮叮咚」
+  tone(587.33, 0,    0.16, 'sine', 0.25); // D5
+  tone(739.99, 0.12, 0.16, 'sine', 0.25); // F#5
+  tone(987.77, 0.24, 0.30, 'sine', 0.28); // B5
+}
+function playFail() {
+  // 柔和低沉的「嗯—」（不刺耳）
+  tone(311.13, 0,    0.22, 'triangle', 0.22); // Eb4
+  tone(233.08, 0.16, 0.40, 'triangle', 0.22); // Bb3
+}
+
 
 const cardEl = document.getElementById('card');
 const qEl = document.getElementById('q');
@@ -346,6 +404,7 @@ const totalEl = document.getElementById('total');
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
 const doneBanner = document.getElementById('doneBanner');
+const correctEl = document.getElementById('correct');
 
 totalEl.textContent = DATA.length;
 
@@ -363,14 +422,30 @@ function render() {
 function flip() { cardEl.classList.toggle('flipped'); }
 function next() { if (pos < DATA.length - 1) { pos++; render(); } }
 function prev() { if (pos > 0) { pos--; render(); } }
+
+function mark(ok) {
+  const idx = order[pos];
+  // 若這張之前判過，先扣回舊分再重算，避免重複計分
+  if (judged[idx] === true) correctCount--;
+  judged[idx] = ok;
+  if (ok) { correctCount++; playPass(); } else { playFail(); }
+  correctEl.textContent = correctCount;
+  // 短暫延遲讓音效與動畫播完，再跳下一張
+  setTimeout(() => { if (pos < DATA.length - 1) { pos++; render(); } else { render(); } }, 480);
+}
 function shuffleCards() {
   for (let i = order.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [order[i], order[j]] = [order[j], order[i]];
   }
-  pos = 0; render();
+  pos = 0; resetScore(); render();
 }
-function resetOrder() { order = DATA.map((_, i) => i); pos = 0; render(); }
+function resetOrder() { order = DATA.map((_, i) => i); pos = 0; resetScore(); render(); }
+function resetScore() {
+  correctCount = 0;
+  for (const k in judged) delete judged[k];
+  correctEl.textContent = '0';
+}
 function toggleAuto() {
   auto = !auto;
   const btn = document.getElementById('autoBtn');
