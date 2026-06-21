@@ -199,6 +199,9 @@
     padding: 32px 26px; display: flex; flex-direction: column;
   }
   .face.back { transform: rotateY(180deg); background: rgba(255,253,248,0.95); }
+  .face-top {
+    display: flex; align-items: center; justify-content: space-between;
+  }
   .tag {
     font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
     text-transform: uppercase; align-self: flex-start;
@@ -206,6 +209,14 @@
   }
   .face.front .tag { background: #fbe1ea; color: var(--accent-deep); }
   .face.back .tag { background: #d9ece7; color: var(--teal); }
+  .speak-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,0.9); box-shadow: 0 2px 8px var(--shadow);
+    font-size: 19px; line-height: 1; display: flex;
+    align-items: center; justify-content: center; padding: 0;
+  }
+  .speak-btn.speaking { background: #ffe9a8; animation: pulse 0.8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
   .content {
     flex: 1; display: flex; align-items: center; justify-content: center;
     text-align: center; padding: 14px 4px;
@@ -321,14 +332,20 @@
     <div class="scene-3d">
       <div class="card" id="card" onclick="flip()">
         <div class="face front">
-          <span class="tag">題目</span>
+          <div class="face-top">
+            <span class="tag">題目</span>
+            <button class="speak-btn" id="speakQ" onclick="speakFace(event,'q')" title="唸發音">🔊</button>
+          </div>
           <div class="content"><div class="q-text" id="q"></div></div>
-          <div class="hint">點一下看答案</div>
+          <div class="hint">點一下看答案・🔊 聽發音</div>
         </div>
         <div class="face back">
-          <span class="tag">答案</span>
+          <div class="face-top">
+            <span class="tag">答案</span>
+            <button class="speak-btn" id="speakA" onclick="speakFace(event,'a')" title="唸發音">🔊</button>
+          </div>
           <div class="content"><div class="a-text" id="a"></div></div>
-          <div class="hint">點一下回到題目</div>
+          <div class="hint">點一下回到題目・🔊 聽發音</div>
         </div>
       </div>
     </div>
@@ -410,6 +427,7 @@ totalEl.textContent = DATA.length;
 
 function render() {
   const card = DATA[order[pos]];
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
   cardEl.classList.remove('flipped');
   qEl.textContent = card.q;
   aEl.textContent = card.a;
@@ -422,6 +440,63 @@ function render() {
 function flip() { cardEl.classList.toggle('flipped'); }
 function next() { if (pos < DATA.length - 1) { pos++; render(); } }
 function prev() { if (pos > 0) { pos--; render(); } }
+
+// ===== 英文發音（瀏覽器內建語音合成） =====
+let enVoice = null;
+function pickVoice() {
+  const voices = speechSynthesis.getVoices();
+  // 優先挑英式或美式英文嗓音
+  enVoice = voices.find(v => /en[-_]US/i.test(v.lang)) ||
+            voices.find(v => /en[-_]GB/i.test(v.lang)) ||
+            voices.find(v => /^en/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+
+// 從文字中取出要唸的英文：優先引號「」"" 內的英文，否則抓最長的英文片段
+function extractEnglish(text) {
+  if (!text) return '';
+  const quoted = [];
+  const re = /[「『"“]([^」』"”]+)[」』"”]/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    if (/[A-Za-z]/.test(m[1])) quoted.push(m[1].trim());
+  }
+  if (quoted.length) return quoted.join(', ');
+  // 沒有引號英文 → 抓出連續的英文（含空格、撇號、句點）片段
+  const segs = text.match(/[A-Za-z][A-Za-z'.\- ]*[A-Za-z.]/g);
+  if (segs && segs.length) {
+    // 取最長的一段，通常就是目標句/詞
+    return segs.sort((a, b) => b.length - a.length)[0].trim();
+  }
+  return '';
+}
+
+function speakFace(ev, which) {
+  ev.stopPropagation(); // 別讓點喇叭變成翻卡
+  if (!('speechSynthesis' in window)) { alert('這個瀏覽器不支援語音功能'); return; }
+  const card = DATA[order[pos]];
+  const raw = which === 'q' ? card.q : card.a;
+  const text = extractEnglish(raw);
+  const btn = document.getElementById(which === 'q' ? 'speakQ' : 'speakA');
+  if (!text) {
+    // 沒有英文可唸，喇叭抖一下提示
+    btn.animate([{transform:'rotate(-8deg)'},{transform:'rotate(8deg)'},{transform:'rotate(0)'}],{duration:300});
+    return;
+  }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  if (enVoice) u.voice = enVoice;
+  u.rate = 0.85;  // 放慢一點，小朋友聽得清楚
+  u.pitch = 1.0;
+  u.onstart = () => btn.classList.add('speaking');
+  u.onend = () => btn.classList.remove('speaking');
+  u.onerror = () => btn.classList.remove('speaking');
+  speechSynthesis.speak(u);
+}
 
 function mark(ok) {
   const idx = order[pos];
